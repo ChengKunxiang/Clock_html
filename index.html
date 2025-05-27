@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clock</title>
+</head>
+
+<style>
+    /* 基础重置 */
+    body {
+        margin: 0;
+        padding: 20px;
+        min-height: 100vh;
+        position: relative;
+        }
+
+    html, body {
+        overflow: hidden;
+        }
+    /* 通用内容容器样式 */
+    .content {
+        position: relative; /* 确保内容显示在背景之上 */
+        z-index: 2;
+        max-width: 800px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.9); /* 半透明背景 */
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+/* ---------- 背景方案选择 ---------- */
+    /* 方案1：渐变背景 */
+    .default {
+        background: linear-gradient(
+            135deg,
+            #a8edea 0%,
+            #fed6e3 100%
+        );
+    }
+    .weather-clear {
+        background-image: url('Clear.png');
+    }
+    .weather-rain {
+        background-image: url('Rain.png');
+    }
+    .weather-snow {
+        background-image: url('Snow.png');
+    }
+    .weather-clouds {
+        background-image: url('Clouds.png');
+    }
+    .weather-thunderstorm {
+        background-image: url('Thunderstorm.png');
+    }
+    .weather-mist {
+        background-image: url('Mist.png');
+    }
+    /* 基本样式 - 可根据自己网站风格调整 */
+    .time-display {
+        font-size: 1.2em;
+        color: #333;
+        padding: 10px;
+        background: #f0f0f0;
+        border-radius: 5px;
+        display: inline-block;
+    }
+    .weather-info {
+        margin-top: 10px;
+        padding: 15px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .weather-info h3 {
+        margin: 0 0 10px 0;
+        color: #2c3e50;
+    }
+    .weather-info p {
+        margin: 5px 0;
+        color: #7f8c8d;
+    }
+</style>
+
+<!-- 选择任意一种背景方案 -->
+<body class="default">
+    <div class="content">
+    <!-- 在需要显示时间和天气的位置添加这两个容器 -->
+    <div id="time-widget"></div>
+    <div id="weather-widget"></div>
+
+    <script>
+        // 时间显示函数
+    function updateTime() {
+        const now = new Date();
+        
+        // 格式化时间（补零函数）
+        const format = n => n < 10 ? '0' + n : n;
+        
+        // 拼接时间字符串
+        const timeString = `${format(now.getHours())}:${format(now.getMinutes())}:${format(now.getSeconds())}`;
+        
+        // 更新DOM元素
+        document.getElementById('time-widget').innerHTML = `
+            <div class="time-display">当前时间：${timeString}</div>
+        `;
+    }
+    // 天气获取函数
+    async function getWeather() {
+        const apiKey = '9cb00708fbcfbdb7d95a19b11986cc96';
+        const city = 'Beijing';
+        try {
+            const response = await fetch(
+                `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`
+            );
+            
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
+            const data = await response.json();
+            updateWeatherDisplay(data);
+            changeBackground(data.weather[0].main);
+            
+        } catch (error) {
+            console.error('天气获取失败:', error);
+            document.getElementById('weather-widget').innerHTML = `
+                <div class="weather-error">天气信息获取失败，请稍后重试</div>
+            `;
+        }
+        }
+        // 分离天气显示更新逻辑
+        function updateWeatherDisplay(data) {
+            document.getElementById('weather-widget').innerHTML = `
+                <div class="weather-info">
+                    <h3>${data.name}</h3>
+                    <p>温度：${Math.round(data.main.temp)}℃</p>
+                    <p>体感温度：${Math.round(data.main.feels_like)}℃</p>
+                    <p>天气：${data.weather[0].main}</p>
+                    <p>湿度：${data.main.humidity}%</p>
+                    <p>风速：${data.wind.speed} m/s</p>
+                </div>
+            `;
+        }
+        // 优化背景切换函数
+        function changeBackground(weatherType) {
+            const validTypes = ['Clear', 'Rain', 'Snow', 'Clouds'];
+            const body = document.body;
+            // 移除所有天气相关class
+            body.className = '';
+            
+            if (validTypes.includes(weatherType)) {
+                body.classList.add(`weather-${weatherType.toLowerCase()}`);
+            } else {
+                body.classList.add('default');
+            }
+        }
+        // 优化初始化逻辑
+        window.addEventListener('DOMContentLoaded', () => {
+            updateTime();
+            getWeather();
+            setInterval(updateTime, 1000);
+            setInterval(getWeather, 600000); // 只需保留一个定时器
+        });
+    </script>
+</body>
+</html>
