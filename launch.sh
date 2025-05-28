@@ -1,55 +1,51 @@
 #!/bin/bash
 
-# 设置文件和目录路径
-BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HTML_FILE="$BASE_DIR/index.html"    # 修改为你的HTML文件名
-PORT=8000                          # HTTP服务端口
+# 配置参数
+HTML_FILE="index.html"      # 修改为你的HTML文件名
+PORT=8080                   # HTTP服务端口
+FIREFOX_PATH="/usr/bin/firefox"  # Firefox路径（确认实际路径）
 
-# 检查必要的依赖
+# 获取当前脚本所在目录
+BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# 检查依赖项
 check_dependencies() {
-    # 检查Python3
-    if ! command -v python3 &>/dev/null; then
-        echo "错误：需要Python3来运行本地Web服务器"
+    if ! [ -f "$FIREFOX_PATH" ]; then
+        echo "错误：Firefox未安装或路径不正确，请确认安装Firefox"
         exit 1
     fi
     
-    # 检查浏览器
-    if ! command -v firefox && ! command -v google-chrome && ! command -v chromium-browser; then
-        echo "错误：请安装 Firefox、Chrome 或 Chromium 浏览器"
+    if ! command -v python3 &>/dev/null; then
+        echo "错误：需要Python3运行本地服务器"
         exit 1
     fi
 }
 
-# 启动本地Web服务器
+# 启动本地服务器
 start_server() {
-    echo "在端口 $PORT 启动本地Web服务器..."
+    echo "在 $PORT 端口启动Web服务器..."
     python3 -m http.server "$PORT" --directory "$BASE_DIR" >/dev/null 2>&1 &
     SERVER_PID=$!
-    sleep 2  # 等待服务器初始化
+    sleep 1  # 等待服务器初始化
 }
 
-# 关闭服务器的清理函数
+# 清理函数
 cleanup() {
     kill "$SERVER_PID" 2>/dev/null
     exit 0
 }
 
-# 主执行流程
+# 主流程
 check_dependencies
 start_server
 
-# 捕获退出信号
-trap cleanup EXIT
+# 注册退出处理
+trap cleanup EXIT INT TERM
 
-# 自动选择浏览器（优先级：Chrome > Firefox > Chromium）
-if command -v google-chrome &>/dev/null; then
-    firefox --kiosk "http://localhost:$PORT" &> /dev/null
-elif command -v firefox &>/dev/null; then
-    google-chrome --start-fullscreen "http://localhost:$PORT" &> /dev/null
-else
-    chromium-browser --start-fullscreen "http://localhost:$PORT" &> /dev/null
-fi
+# 使用Firefox启动页面
+echo "使用Firefox全屏启动..."
+"$FIREFOX_PATH" --kiosk "http://localhost:$PORT/$HTML_FILE" &
 
-# 保持脚本运行
-echo "按 Ctrl+C 退出..."
-while true; do sleep 1; done
+# 保持前台运行（需保持此循环）
+echo "按 Ctrl+C 退出程序..."
+while true; do sleep 3600; done
