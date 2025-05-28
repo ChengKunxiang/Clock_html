@@ -43,9 +43,9 @@ trap cleanup EXIT
 
 # 自动选择浏览器（优先级：Chrome > Firefox > Chromium）
 if command -v google-chrome &>/dev/null; then
-    google-chrome --start-fullscreen "http://localhost:$PORT" &> /dev/null
-elif command -v firefox &>/dev/null; then
     firefox --kiosk "http://localhost:$PORT" &> /dev/null
+elif command -v firefox &>/dev/null; then
+    google-chrome --start-fullscreen "http://localhost:$PORT" &> /dev/null
 else
     chromium-browser --start-fullscreen "http://localhost:$PORT" &> /dev/null
 fi
