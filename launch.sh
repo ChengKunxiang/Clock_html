@@ -1,60 +1,55 @@
 #!/bin/bash
 
-# 获取当前脚本所在目录
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# 设置文件和目录路径
+BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HTML_FILE="$BASE_DIR/index.html"    # 修改为你的HTML文件名
+PORT=8000                          # HTTP服务端口
 
-# 定义HTML文件路径（与脚本同目录）
-HTML_FILE="$SCRIPT_DIR/index.html"  # 替换为你的实际HTML文件名
-
-# 定义浏览器启动参数
-BROWSERS=(
-    "epiphany --fullscreen"          # 最适合信息亭模式
-    "firefox --kiosk"                # Firefox全屏模式
-    "google-chrome --start-fullscreen"  # Chrome全屏
-    "chromium-browser --start-fullscreen"  # Chromium全屏
-)
-
-# 检测可用浏览器
-find_browser() {
-    for browser in "${BROWSERS[@]}"; do
-        command=$(echo "$browser" | awk '{print $1}')
-        if command -v "$command" &>/dev/null; then
-            echo "$browser"  # 返回找到的浏览器命令
-            return 0
-        fi
-    done
-    return 1
+# 检查必要的依赖
+check_dependencies() {
+    # 检查Python3
+    if ! command -v python3 &>/dev/null; then
+        echo "错误：需要Python3来运行本地Web服务器"
+        exit 1
+    fi
+    
+    # 检查浏览器
+    if ! command -v firefox && ! command -v google-chrome && ! command -v chromium-browser; then
+        echo "错误：请安装 Firefox、Chrome 或 Chromium 浏览器"
+        exit 1
+    fi
 }
 
-# 检测并启动浏览器的逻辑
-selected_browser=$(find_browser)
-if [ $? -ne 0 ]; then
-    echo "错误：未找到支持的浏览器，请安装以下任意浏览器："
-    for browser in "${BROWSERS[@]}"; do
-        echo "  - $(echo "$browser" | awk '{print $1}')"
-    done
-    exit 1
+# 启动本地Web服务器
+start_server() {
+    echo "在端口 $PORT 启动本地Web服务器..."
+    python3 -m http.server "$PORT" --directory "$BASE_DIR" >/dev/null 2>&1 &
+    SERVER_PID=$!
+    sleep 2  # 等待服务器初始化
+}
+
+# 关闭服务器的清理函数
+cleanup() {
+    kill "$SERVER_PID" 2>/dev/null
+    exit 0
+}
+
+# 主执行流程
+check_dependencies
+start_server
+
+# 捕获退出信号
+trap cleanup EXIT
+
+# 自动选择浏览器（优先级：Chrome > Firefox > Chromium）
+if command -v google-chrome &>/dev/null; then
+    firefox --kiosk "http://localhost:$PORT" &> /dev/null
+elif command -v firefox &>/dev/null; then
+    google-chrome --start-fullscreen "http://localhost:$PORT" &> /dev/null
+else
+    chromium-browser --start-fullscreen "http://localhost:$PORT" &> /dev/null
 fi
 
-# 设置DISPLAY环境变量（适用于没有GUI加载的情况） 
-export DISPLAY=${DISPLAY:-:0}
-
-# 启动浏览器前清空可能存在的锁文件（针对Firefox）
-find ~/.mozilla -name "*lock" -delete 2>/dev/null
-
-# 启动浏览器
-echo "正在使用 ${selected_browser%% *} 启动..."
-$selected_browser "$HTML_FILE" &
-
-# 窗口管理优化（对于某些需要额外处理的浏览器）
-sleep 3  # 等待浏览器初始化
-
-# 使用wmctrl强制窗口全屏（双重保险）
-if command -v wmctrl &>/dev/null; then
-    wmctrl -r "your_page.html" -b toggle,fullscreen  # 将"your_page.html"改为页面标题关键词
-fi
-
-# 禁用屏幕保护（可选）
-xset s off
-xset -dpms
-xset s noblank
+# 保持脚本运行
+echo "按 Ctrl+C 退出..."
+while true; do sleep 1; done
