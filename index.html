@@ -18,13 +18,14 @@
     html, body {
         overflow: hidden;
         }
-    /* 通用内容容器样式 */
+
+    /* 仪表盘容器样式 */
     .content {
         position: relative; /* 确保内容显示在背景之上 */
         z-index: 2;
         max-width: 800px;
         margin: 0 auto;
-        background: rgba(255, 255, 255, 0.9); /* 半透明背景 */
+        background: rgba(255, 255, 255, 0.2); /* 半透明背景 */
         padding: 2rem;
         border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -86,18 +87,16 @@
 <!-- 选择任意一种背景方案 -->
 <body class="default">
     <div class="content">
-    <!-- 在需要显示时间和天气的位置添加这两个容器 -->
-    <div id="time-widget"></div>
-    <div id="weather-widget"></div>
-
+        <!-- 在需要显示时间和天气的位置添加这两个容器 -->
+        <div id="time-widget"></div>
+        <div id="weather-widget"></div>
+    </div>
     <script>
         // 时间显示函数
     function updateTime() {
         const now = new Date();
-        
         // 格式化时间（补零函数）
         const format = n => n < 10 ? '0' + n : n;
-        
         // 拼接时间字符串
         const timeString = `${format(now.getHours())}:${format(now.getMinutes())}:${format(now.getSeconds())}`;
         
@@ -109,7 +108,7 @@
     // 天气获取函数
     async function getWeather() {
         const apiKey = '9cb00708fbcfbdb7d95a19b11986cc96';
-        const city = 'Beijing';
+        const city = 'Samara';
         try {
             const response = await fetch(
                 `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`
