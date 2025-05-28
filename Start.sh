@@ -55,6 +55,6 @@ if command -v wmctrl &>/dev/null; then
 fi
 
 # 禁用屏幕保护（可选）
-xset s off
-xset -dpms
-xset s noblank
+# xset s off
+# xset -dpms
+# xset s noblank

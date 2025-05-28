@@ -5,92 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clock</title>
 </head>
+<link rel="stylesheet" href="index.css" />
 
-<style>
-    /* 基础重置 */
-    body {
-        margin: 0;
-        padding: 20px;
-        min-height: 100vh;
-        position: relative;
-        }
-
-    html, body {
-        overflow: hidden;
-        }
-
-    /* 仪表盘容器样式 */
-    .content {
-        position: relative; /* 确保内容显示在背景之上 */
-        z-index: 2;
-        max-width: 800px;
-        margin: 0 auto;
-        background: rgba(255, 255, 255, 0.2); /* 半透明背景 */
-        padding: 2rem;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-/* ---------- 背景方案选择 ---------- */
-    /* 方案1：渐变背景 */
-    .default {
-        background: linear-gradient(
-            135deg,
-            #a8edea 0%,
-            #fed6e3 100%
-        );
-    }
-    .weather-clear {
-        background-image: url('Clear.png');
-    }
-    .weather-rain {
-        background-image: url('Rain.png');
-    }
-    .weather-snow {
-        background-image: url('Snow.png');
-    }
-    .weather-clouds {
-        background-image: url('Clouds.png');
-    }
-    .weather-thunderstorm {
-        background-image: url('Thunderstorm.png');
-    }
-    .weather-mist {
-        background-image: url('Mist.png');
-    }
-    /* 基本样式 - 可根据自己网站风格调整 */
-    .time-display {
-        font-size: 1.2em;
-        color: #333;
-        padding: 10px;
-        background: #f0f0f0;
-        border-radius: 5px;
-        display: inline-block;
-    }
-    .weather-info {
-        margin-top: 10px;
-        padding: 15px;
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .weather-info h3 {
-        margin: 0 0 10px 0;
-        color: #2c3e50;
-    }
-    .weather-info p {
-        margin: 5px 0;
-        color: #7f8c8d;
-    }
-</style>
-
-<!-- 选择任意一种背景方案 -->
-<body class="default">
+<body class="default" style="zoom:1">
+    <div class="clock" id="clock" style="align-content: center; zoom: 0.5;">
+        <!-- 原点 -->
+        <div class="origin"></div>
+      
+        <!-- 时分秒针 -->
+        <div class="clock-line hour-line" id="hour-line"></div>
+        <div class="clock-line minute-line" id="minute-line"></div>
+        <div class="clock-line second-line" id="second-line"></div>
+      
+        <!-- 日期 -->
+        <div class="date-info" id="date-info"></div>
+        <!-- 时间 -->
+        <div class="time-info" >
+         <div class="time" id="hour-time"></div>
+         <div class="time" id="minute-time"></div>
+         <div class="time" id="second-time"></div>
+        </div>
+    </div>
     <div class="content">
-        <!-- 在需要显示时间和天气的位置添加这两个容器 -->
+        <!-- 日期、时间和天气容器 -->
+        <div id="date-widget"></div>
         <div id="time-widget"></div>
         <div id="weather-widget"></div>
     </div>
+
+    <script type="text/javascript" src="index.js"></script>
+
     <script>
         // 时间显示函数
     function updateTime() {
@@ -98,11 +42,15 @@
         // 格式化时间（补零函数）
         const format = n => n < 10 ? '0' + n : n;
         // 拼接时间字符串
+        const dateString = `${format(now.getUTCMonth())}.${format(now.getDate())}`;
         const timeString = `${format(now.getHours())}:${format(now.getMinutes())}:${format(now.getSeconds())}`;
         
         // 更新DOM元素
+        document.getElementById('date-widget').innerHTML = `
+            <div class="date-display">${dateString}</div>
+        `;
         document.getElementById('time-widget').innerHTML = `
-            <div class="time-display">当前时间：${timeString}</div>
+            <div class="time-display">${timeString}</div>
         `;
     }
     // 天气获取函数
@@ -132,11 +80,11 @@
             document.getElementById('weather-widget').innerHTML = `
                 <div class="weather-info">
                     <h3>${data.name}</h3>
-                    <p>温度：${Math.round(data.main.temp)}℃</p>
-                    <p>体感温度：${Math.round(data.main.feels_like)}℃</p>
-                    <p>天气：${data.weather[0].main}</p>
-                    <p>湿度：${data.main.humidity}%</p>
-                    <p>风速：${data.wind.speed} m/s</p>
+                    <strong>温度：</strong><p>${Math.round(data.main.temp)}℃</p>
+                    <strong>体感温度：</strong><p>${Math.round(data.main.feels_like)}℃</p>
+                    <strong>天气：</strong><p>${data.weather[0].main}</p>
+                    <strong>湿度：</strong><p>${data.main.humidity}%</p>
+                    <strong>风速：</strong><p>${data.wind.speed} m/s</p>
                 </div>
             `;
         }
