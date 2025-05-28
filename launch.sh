@@ -10,7 +10,7 @@ sleep 2
 
 # 打开 Firefox 并全屏显示指定的 URL
 URL="http://localhost:8000"
-firefox -fullscreen "$URL" &
+chromium --kiosk "$URL" &
 
 # 捕获 Ctrl+C 信号以停止服务器
 trap "kill $SERVER_PID && echo '服务器已停止。' && exit" INT
